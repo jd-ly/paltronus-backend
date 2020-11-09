@@ -35,17 +35,11 @@ func (c *Version) CreateVersion() revel.Result {
 		return c.RenderJSON(map[string]string{"status": "Invalid Parameters"})
 	}
 
-	file, err := services.QueryFile(fileId)
-	if err != nil {
-		c.Response.Status = http.StatusBadRequest
-		return c.RenderJSON(map[string]string{"status": "Invalid Request"})
-	}
-
 	version := models.Version{
 		RawData: 		rawData,
 		CreatedBy:      createdBy,
 		CreationDate:   time.Now().Format("2006-01-02 15:04:05"),
-		File: 			file,
+		File: 			fileId,
 	}
 
 	version.Validate(c.Validation)

@@ -29,7 +29,7 @@ func InsertVersion(version models.Version) (*models.Version, error) {
 
 func QueryFileVersions(id int) (*[]models.Version, error) {
 	versions := []models.Version{}
-	if result := DB.Find(&versions, "file.id = ?", id); result.Error != nil {
+	if result := DB.Find(&versions, "file = ?", id); result.Error != nil {
 		return &versions, result.Error
 	}
 	return &versions, nil

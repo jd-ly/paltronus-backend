@@ -7,9 +7,9 @@ import (
 type Version struct {
 	Id          	int		`db:"id" json:"id"`
 	RawData    		string	`db:"rawData" json:"rawData"`
-	CreatedBy          string	`db:"createdBy" json:"createdBy"`
+	CreatedBy       string	`db:"createdBy" json:"createdBy"`
 	CreationDate    string	`db:"creationDate" json:"creationDate"`
-	File			File	`db:"file" json:"file"`
+	File			int		`db:"file" json:"file"`
 }
 
 func (version *Version) Validate(v *revel.Validation) {
