@@ -5,6 +5,8 @@ tmp/
 routes/
 test-results/
 revel/revel
+none
+target
 
 # editor
 *.swp
