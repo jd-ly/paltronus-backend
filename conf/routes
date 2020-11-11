@@ -32,6 +32,10 @@ POST     /api/files                                      File.CreateFile
 PUT      /api/files/:id                                  File.UpdateFile
 DELETE   /api/files/:id                                  File.DeleteFile
 
-# version Endpoints
+# Version Endpoints
 GET      /api/versions/:id                               Version.GetFileVersions
 GET      /api/versions                                   Version.GetVersions
+GET      /api/versions/last/:id                          Version.GetLastVersion
+
+# Websocket Endpoints
+WS       /ws/files/:id/:user                             Websocket.Init

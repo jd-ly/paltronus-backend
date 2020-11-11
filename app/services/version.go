@@ -34,3 +34,10 @@ func QueryFileVersions(id int) (*[]models.Version, error) {
 	}
 	return &versions, nil
 }
+func QueryLastVersion(id int) (*models.Version, error) {
+	version := models.Version{}
+	if result := DB.Last(&version, "file = ?", id); result.Error != nil {
+		return &version, result.Error
+	}
+	return &version, nil
+}

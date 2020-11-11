@@ -73,3 +73,12 @@ func (c *Version) GetFileVersions(id int) revel.Result {
 	}
 	return c.RenderJSON(version)
 }
+
+func (c *Version) GetLastVersion(id int) revel.Result {
+	version, err := services.QueryLastVersion(id)
+	if err != nil {
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(map[string]string{"status": "Invalid Request"})
+	}
+	return c.RenderJSON(version)
+}
