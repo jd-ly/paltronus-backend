@@ -38,7 +38,7 @@ func (c *Version) CreateVersion() revel.Result {
 	version := models.Version{
 		RawData: 		rawData,
 		CreatedBy:      createdBy,
-		CreationDate:   time.Now().Format("2006-01-02 15:04:05"),
+		CreationDate:   time.Now(),
 		File: 			fileId,
 	}
 

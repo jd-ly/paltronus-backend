@@ -33,18 +33,21 @@ func (c *Websocket) Init(id int, user string, ws revel.ServerWebSocket) revel.Re
 				version := models.Version{
 					RawData:      msg,
 					CreatedBy:    user,
-					CreationDate: time.Now().Format("2006-01-02 15:04:05"),
+					CreationDate: time.Now(),
 					File:         id,
 				}
 				_, e := services.InsertVersion(version)
 				if e == nil {
 					newMessages <- msg
-					return
+				} else {
+					break
 				}
+			} else {
+				break
 			}
-			close(newMessages)
-			return
 		}
+		close(newMessages)
+		return
 	}()
 
 	// Listen for new events from either the websocket or the services.
@@ -54,9 +57,6 @@ func (c *Websocket) Init(id int, user string, ws revel.ServerWebSocket) revel.Re
 			if ws.MessageSendJSON(&event) != nil {
 				// They disconnected.
 				return nil
-			}
-			if event.Type == "join" {
-
 			}
 		case msg, ok := <-newMessages:
 			// If the channel is closed, they disconnected.

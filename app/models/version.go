@@ -2,14 +2,15 @@ package models
 
 import (
 	"github.com/revel/revel"
+	"time"
 )
 
 type Version struct {
-	Id          	int		`db:"id" json:"id"`
-	RawData    		string	`db:"rawData" json:"rawData"`
-	CreatedBy       string	`db:"createdBy" json:"createdBy"`
-	CreationDate    string	`db:"creationDate" json:"creationDate"`
-	File			int		`db:"file" json:"file"`
+	Id          	int			`db:"id" json:"id"`
+	RawData    		string		`db:"rawData" json:"rawData"`
+	CreatedBy       string		`db:"createdBy" json:"createdBy"`
+	CreationDate    time.Time	`db:"creationDate" json:"creationDate"`
+	File			int			`db:"file" json:"file"`
 }
 
 func (version *Version) Validate(v *revel.Validation) {

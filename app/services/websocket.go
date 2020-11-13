@@ -12,7 +12,6 @@ type Channel struct {
 }
 
 type Subscriber struct {
-	FileId 	int
 	User    	 string
 	Events 	chan Event
 }
@@ -58,8 +57,6 @@ func Leave(user string, id int) {
 	publish <- newEvent("leave", user, "", id)
 }
 
-const archiveSize = 10
-
 var (
 	// Send a channel here to get room events back.  It will send the entire
 	// archive initially, and then new messages as they come in.
@@ -70,16 +67,14 @@ var (
 	publish = make(chan Event)
 )
 
-func getUsers(subs *list.List, id int) string {
+func getUsers(subs *list.List) string {
 	var users = ""
 	for ch := subs.Front(); ch != nil; ch = ch.Next() {
-		value := ch.Value.(Subscriber)
-		if value.FileId == id {
-			if users == "" {
-				users = value.User
-			} else {
-				users = users + "," + value.User
-			}
+		value := ch.Value.(Subscriber).User
+		if users == "" {
+			users = value
+		} else {
+			users = users + "," + value
 		}
 	}
 	return users
@@ -87,19 +82,24 @@ func getUsers(subs *list.List, id int) string {
 
 // This function loops forever
 func room() {
-	subscribers := list.New()
+	subscribers := make(map[int]*list.List)
 
 	for {
 		select {
 		case ch := <-subscribe:
 			subscriber := make(chan Event)
-			subscribers.PushBack(Subscriber{ch.FileId, ch.User, subscriber})
+			if subscribers[ch.FileId] == nil {
+				subscribers[ch.FileId] = list.New()
+			}
+			subscribers[ch.FileId].PushBack(Subscriber{ch.User, subscriber})
 			ch.Subscription <- Subscription{0, subscriber}
 
 		case event := <-publish:
-			for ch := subscribers.Front(); ch != nil; ch = ch.Next() {
-				value := ch.Value.(Subscriber)
-				if value.FileId == event.FileId {
+			fileSubs := subscribers[event.FileId]
+			if fileSubs != nil {
+				currentUsers := getUsers(fileSubs)
+				for ch := fileSubs.Front(); ch != nil; ch = ch.Next() {
+					value := ch.Value.(Subscriber)
 					if event.Type == "join" {
 						if value.User == event.User {
 							// Send content
@@ -108,32 +108,40 @@ func room() {
 								value.Events <- newEvent("message", event.User, version.RawData, event.FileId)
 							}
 						}
-						currentUsers := getUsers(subscribers, event.FileId)
 						if currentUsers != "" {
 							value.Events <- newEvent("join", event.User, currentUsers, event.FileId)
 						}
 					} else if event.Type == "leave" {
-						unsubscribe <- value.Events
-						currentUsers := getUsers(subscribers, event.FileId)
+						// Remove the users
+						for cha := fileSubs.Front(); cha != nil; cha = cha.Next() {
+							sub := cha.Value.(Subscriber)
+							if sub.User == event.User {
+								fileSubs.Remove(cha)
+								break
+							}
+						}
+						currentUsers := getUsers(fileSubs)
 						if currentUsers != "" {
-
+							for cha := fileSubs.Front(); cha != nil; cha = cha.Next() {
+								cha.Value.(Subscriber).Events <- newEvent("leave", event.User, currentUsers, event.FileId)
+							}
 						}
-					} else {
-						if value.User != event.User {
-							// Send to everyone else
+					} else if value.User != event.User {
 							value.Events <- event
-						}
 					}
 				}
 			}
 
 
 		case unsub := <-unsubscribe:
-			for ch := subscribers.Front(); ch != nil; ch = ch.Next() {
-				value := ch.Value.(Subscriber)
-				if value.Events == unsub {
-					subscribers.Remove(ch)
-					break
+			for _, value := range subscribers {
+				fileSubs := value
+				for ch := fileSubs.Front(); ch != nil; ch = ch.Next() {
+					value := ch.Value.(Subscriber)
+					if value.Events == unsub {
+						fileSubs.Remove(ch)
+						break
+					}
 				}
 			}
 		}
